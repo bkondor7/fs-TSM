@@ -1,82 +1,84 @@
-// server.js
-
 const express = require('express');
-const mysql = require('mysql');
+const sqlite3 = require('sqlite3').verbose();
 const bodyParser = require('body-parser');
+const path = require('path');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const db = new sqlite3.Database(':memory:');
 
-// Create MySQL Connection
-const connection = mysql.createConnection({
-  host: 'localhost',
-  user: 'your_username',
-  password: 'your_password',
-  database: 'tasks_db'
+
+db.serialize(() => {
+    db.run(`
+        CREATE TABLE IF NOT EXISTS tasks (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            category TEXT NOT NULL,
+            dueDate TEXT NOT NULL,
+            priority TEXT NOT NULL
+        )
+    `);
 });
 
-// Connect to MySQL
-connection.connect((err) => {
-  if (err) {
-    console.error('Error connecting to MySQL: ' + err.stack);
-    return;
-  }
-  console.log('Connected to MySQL as id ' + connection.threadId);
-});
-
-
+// Middleware
 app.use(bodyParser.json());
+app.use(express.static(path.join(__dirname, 'public')));
 
-// Routes
+// Get all tasks or filter by query, category, or priority
 app.get('/api/tasks', (req, res) => {
-  const sql = 'SELECT * FROM tasks';
-  connection.query(sql, (error, results) => {
-    if (error) {
-      console.error('Error executing MySQL query: ' + error.stack);
-      res.status(500).send('Server Error');
-      return;
+    const { query, category, priority } = req.query;
+    let sql = 'SELECT * FROM tasks WHERE 1=1';
+    const params = [];
+
+    if (query) {
+        sql += ' AND name LIKE ?';
+        params.push(`%${query}%`);
     }
-    res.json(results);
-  });
+    if (category) {
+        sql += ' AND category = ?';
+        params.push(category);
+    }
+    if (priority) {
+        sql += ' AND priority = ?';
+        params.push(priority);
+    }
+
+    db.all(sql, params, (err, rows) => {
+        if (err) {
+            res.status(500).json({ error: err.message });
+            return;
+        }
+        res.json(rows);
+    });
 });
 
+// Add a new task
 app.post('/api/tasks', (req, res) => {
-  const { title } = req.body;
-  const sql = 'INSERT INTO tasks (title, completed) VALUES (?, ?)';
-  connection.query(sql, [title, false], (error, result) => {
-    if (error) {
-      console.error('Error executing MySQL query: ' + error.stack);
-      res.status(500).send('Server Error');
-      return;
-    }
-    res.json({ id: result.insertId, title, completed: false });
-  });
+    const { name, category, dueDate, priority } = req.body;
+    db.run('INSERT INTO tasks (name, category, dueDate, priority) VALUES (?, ?, ?, ?)', [name, category, dueDate, priority], function(err) {
+        if (err) {
+            res.status(500).json({ error: err.message });
+            return;
+        }
+        res.json({ id: this.lastID });
+    });
 });
 
-app.put('/api/tasks/:id', (req, res) => {
-  const taskId = req.params.id;
-  const sql = 'UPDATE tasks SET completed = NOT completed WHERE id = ?';
-  connection.query(sql, [taskId], (error, result) => {
-    if (error) {
-      console.error('Error executing MySQL query: ' + error.stack);
-      res.status(500).send('Server Error');
-      return;
-    }
-    res.json({ id: taskId });
-  });
-});
-
+// Delete a task
 app.delete('/api/tasks/:id', (req, res) => {
-  const taskId = req.params.id;
-  const sql = 'DELETE FROM tasks WHERE id = ?';
-  connection.query(sql, [taskId], (error, result) => {
-    if (error) {
-      console.error('Error executing MySQL query: ' + error.stack);
-      res.status(500).send('Server Error');
-      return;
-    }
-    res.json({ msg: 'Task removed' });
-  });
+    db.run('DELETE FROM tasks WHERE id = ?', req.params.id, function(err) {
+        if (err) {
+            res.status(500).json({ error: err.message });
+            return;
+        }
+        res.json({ deletedID: req.params.id });
+    });
 });
 
-app.listen(PORT, () => console.log(`Server started on port ${PORT}`));
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+    console.log(`Server running on http://localhost:${PORT}`);
+});

@@ -1,88 +1,73 @@
-// script.js
+document.addEventListener('DOMContentLoaded', () => {
+  const taskForm = document.getElementById('task-form');
+  const taskList = document.getElementById('task-list');
+  const searchInput = document.getElementById('search-input');
+  const categoryFilter = document.getElementById('category-filter');
+  const priorityFilter = document.getElementById('priority-filter');
 
-document.addEventListener('DOMContentLoaded', function () {
-    const taskForm = document.getElementById('task-form');
-    const taskInput = document.getElementById('task-input');
-    const taskList = document.getElementById('task-list');
-  
-  
-    fetchTasks();
-  
-    // Add event listener to form
-    taskForm.addEventListener('submit', function (e) {
+  const loadTasks = async () => {
+      const response = await fetch('/api/tasks');
+      const tasks = await response.json();
+      displayTasks(tasks);
+  };
+
+  const displayTasks = (tasks) => {
+      taskList.innerHTML = '';
+      tasks.forEach(task => {
+          const li = document.createElement('li');
+          li.classList.add('task-item');
+          li.innerHTML = `
+              <div>
+                  <span class="task-name">${task.name}</span>
+                  <span class="task-category">${task.category}</span>
+                  <span class="task-priority">${task.priority}</span>
+                  <span class="task-due-date">${task.dueDate}</span>
+              </div>
+              <button class="delete-btn" data-id="${task.id}">Delete</button>
+          `;
+          taskList.appendChild(li);
+      });
+
+      // Attach delete event listeners
+      document.querySelectorAll('.delete-btn').forEach(button => {
+          button.addEventListener('click', async (e) => {
+              const taskId = e.target.getAttribute('data-id');
+              await fetch(`/api/tasks/${taskId}`, { method: 'DELETE' });
+              loadTasks();
+          });
+      });
+  };
+
+  taskForm.addEventListener('submit', async (e) => {
       e.preventDefault();
-      const title = taskInput.value;
-      if (title.trim()) {
-        addTask(title);
-        taskInput.value = '';
-      }
-    });
-  
-    // Add task function
-    async function addTask(title) {
-      try {
-        const response = await fetch('/api/tasks', {
+      const name = document.getElementById('task-input').value;
+      const category = document.getElementById('category-select').value;
+      const dueDate = document.getElementById('due-date').value;
+      const priority = document.getElementById('priority-select').value;
+
+      const response = await fetch('/api/tasks', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ title })
-        });
-        const task = await response.json();
-        createTaskElement(task);
-      } catch (error) {
-        console.error('Error:', error);
-      }
-    }
-  
-    // Fetch tasks function
-    async function fetchTasks() {
-      try {
-        const response = await fetch('/api/tasks');
-        const tasks = await response.json();
-        tasks.forEach(task => createTaskElement(task));
-      } catch (error) {
-        console.error('Error:', error);
-      }
-    }
-  
-    // Create task element function
-    function createTaskElement(task) {
-      const li = document.createElement('li');
-      li.dataset.id = task._id;
-      li.innerHTML = `
-        <span class="${task.completed ? 'completed' : ''}">${task.title}</span>
-        <button class="toggle-btn">${task.completed ? 'Undo' : 'Done'}</button>
-        <button class="delete-btn">Delete</button>
-      `;
-      taskList.appendChild(li);
-  
-      const toggleBtn = li.querySelector('.toggle-btn');
-      const deleteBtn = li.querySelector('.delete-btn');
-  
-      toggleBtn.addEventListener('click', async function () {
-        try {
-          const response = await fetch(`/api/tasks/${task._id}`, {
-            method: 'PUT'
-          });
-          const updatedTask = await response.json();
-          li.querySelector('span').classList.toggle('completed');
-          toggleBtn.textContent = updatedTask.completed ? 'Undo' : 'Done';
-        } catch (error) {
-          console.error('Error:', error);
-        }
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, category, dueDate, priority })
       });
-  
-      deleteBtn.addEventListener('click', async function () {
-        try {
-          await fetch(`/api/tasks/${task._id}`, {
-            method: 'DELETE'
-          });
-          li.remove();
-        } catch (error) {
-          console.error('Error:', error);
-        }
-      });
-    }
+
+      if (response.ok) {
+          loadTasks();
+          taskForm.reset();
+      }
   });
-  
+
+  searchInput.addEventListener('input', async () => {
+      const query = searchInput.value;
+      const category = categoryFilter.value;
+      const priority = priorityFilter.value;
+      const response = await fetch(`/api/tasks?query=${query}&category=${category}&priority=${priority}`);
+      const tasks = await response.json();
+      displayTasks(tasks);
+  });
+
+  categoryFilter.addEventListener('change', () => searchInput.dispatchEvent(new Event('input')));
+  priorityFilter.addEventListener('change', () => searchInput.dispatchEvent(new Event('input')));
+
+  loadTasks();
+});
