@@ -1,0 +1,140 @@
+/* styles.css */
+
+/* Reset some default browser styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Arial', sans-serif;
+  background-color: #f5f5f5;
+  color: #333;
+  line-height: 1.6;
+  padding: 20px;
+}
+
+main {
+  max-width: 800px;
+  margin: 0 auto;
+  background: #fff;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+header h1 {
+  font-size: 2.5rem;
+  color: #333;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+#search-filter {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  gap: 10px;
+}
+
+#search-filter input, 
+#search-filter select {
+  flex: 1;
+  padding: 10px;
+  border-radius: 5px;
+  border: 1px solid #ddd;
+}
+
+#task-entry {
+  margin-bottom: 20px;
+}
+
+#task-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+#task-form input[type="text"],
+#task-form select,
+#task-form input[type="date"] {
+  flex: 1;
+  padding: 10px;
+  border-radius: 5px;
+  border: 1px solid #ddd;
+}
+
+#task-form button {
+  padding: 10px 20px;
+  background-color: #28a745;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+#task-form button:hover {
+  background-color: #218838;
+}
+
+#task-list-section {
+  margin-top: 20px;
+}
+
+#task-list {
+  list-style: none;
+}
+
+#task-list li {
+  background-color: #fafafa;
+  margin-bottom: 10px;
+  padding: 15px;
+  border-radius: 5px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border: 1px solid #ddd;
+  transition: background-color 0.3s ease;
+}
+
+#task-list li:hover {
+  background-color: #f0f0f0;
+}
+
+#task-list li span {
+  display: block;
+  font-size: 0.9rem;
+  color: #666;
+}
+
+#task-list li .task-name {
+  font-weight: bold;
+  color: #333;
+}
+
+#task-list li .task-category,
+#task-list li .task-priority,
+#task-list li .task-due-date {
+  font-size: 0.85rem;
+  color: #555;
+}
+
+@media (max-width: 768px) {
+  #search-filter, #task-form {
+    flex-direction: column;
+  }
+
+  #search-filter input, 
+  #search-filter select,
+  #task-form input[type="text"],
+  #task-form select,
+  #task-form input[type="date"] {
+    width: 100%;
+  }
+
+  #task-form button {
+    width: 100%;
+  }
+}

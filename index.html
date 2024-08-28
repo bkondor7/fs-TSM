@@ -1,0 +1,67 @@
+<!-- index.html -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Task Manager</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main>
+    <header>
+      <h1>Task Manager</h1>
+      <section id="search-filter">
+        <input type="text" id="search-input" placeholder="Search Tasks..." aria-label="Search Tasks">
+        <select id="category-filter">
+          <option value="">All Categories</option>
+          <option value="property-listings">Property Listings</option>
+          <option value="client-meetings">Client Meetings</option>
+          <option value="admin-tasks">Admin Tasks</option>
+        </select>
+        <select id="priority-filter">
+          <option value="">All Priorities</option>
+          <option value="high">High</option>
+          <option value="medium">Medium</option>
+          <option value="low">Low</option>
+        </select>
+      </section>
+    </header>
+    
+    <section id="task-entry">
+      <form id="task-form" aria-label="Add new task">
+        <label for="task-input" class="visually-hidden">Task</label>
+        <input type="text" id="task-input" placeholder="Add Task..." aria-required="true">
+        
+        <label for="category-select" class="visually-hidden">Category</label>
+        <select id="category-select" aria-label="Select Category">
+          <option value="property-listings">Property Listings</option>
+          <option value="client-meetings">Client Meetings</option>
+          <option value="admin-tasks">Admin Tasks</option>
+        </select>
+        
+        <label for="due-date" class="visually-hidden">Due Date</label>
+        <input type="date" id="due-date" aria-label="Set Due Date">
+
+        <label for="priority-select" class="visually-hidden">Priority</label>
+        <select id="priority-select" aria-label="Set Priority">
+          <option value="high">High</option>
+          <option value="medium">Medium</option>
+          <option value="low">Low</option>
+        </select>
+        
+        <button type="submit" aria-label="Add Task">Add Task</button>
+      </form>
+    </section>
+
+    <section id="task-list-section">
+      <ul id="task-list" aria-live="polite" aria-label="Task list">
+        <!-- Tasks will be dynamically added here -->
+      </ul>
+    </section>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
